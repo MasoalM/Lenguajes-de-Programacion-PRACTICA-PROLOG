@@ -17,7 +17,7 @@
 % las columnas sin asumir una estructura cuadrada.
 % ->Explicación del diseño: El programa se basa en construir una matriz de casillas a partir de las
 % pistas de filas y columnas. Primero, con generar_filas, se crean las filas respetando las pistas
-% dadas, usando fila_valida para comprobar que cada fila sea válida. Luego se utiliza transponer_manual
+% dadas, usando fila_valida para comprobar que cada fila sea válida. Luego se utiliza transposar
 % para convertir filas en columnas y así poder validar las columnas con validar_columnas.
 % Gracias a que se calcula el número de columnas con length, la solución funciona también para nonogramas
 % rectangulares. En lugar de generar todas las posibles soluciones, el programa va comprobando directamente
@@ -32,7 +32,7 @@
 nonograma(Filas, Columnas, Casillas) :-
     length(Columnas, Ancho),
     generar_filas(Filas, Ancho, Casillas),
-    transponer_manual(Casillas, Transpuesta),
+    transposada(Casillas, Transpuesta),
     validar_columnas(Columnas, Transpuesta).
 
 % generar_filas(Filas, Longitud, Casillas)
@@ -93,24 +93,33 @@ poner_unos(N, [1|T], R) :-
 solo_ceros([]).
 solo_ceros([0|T]) :- solo_ceros(T).
 
-% transponer_manual(Matriz, Transpuesta)
-% Transpone una matriz, convirtiendo filas en columnas.
-% Matriz: matriz original.
-% Transpuesta: resultado de transponer la matriz.
-transponer_manual([], []).
-transponer_manual([[]|_], []).
-transponer_manual(Matriz, [PrimeraCol|RestoCols]) :-
-    extraer_columna(Matriz, PrimeraCol, RestoFilas),
-    transponer_manual(RestoFilas, RestoCols).
+% transposada(Matriz, Transpuesta)
+% Calcula la transpuesta de una matriz (intercambia filas por columnas).
+% Matriz: matriz original representada como lista de listas (filas).
+% Transpuesta: matriz resultante con filas y columnas intercambiadas.
+transposada(M, []) :- M = [PF | _], PF = [], !.
+transposada(M, [PC|TRC]) :-
+    obte1acol(M, PC),
+    obterestacols(M, RC),
+    transposada(RC, TRC).
 
-% extraer_columna(Matriz, Columna, RestoFilas)
-% Extrae la primera columna de una matriz y devuelve el resto de filas sin esa columna.
-% Matriz: lista de listas (filas).
-% Columna: lista con el primer elemento de cada fila.
-% RestoFilas: filas con su primer elemento eliminado.
-extraer_columna([], [], []).
-extraer_columna([[X|Xs]|Resto], [X|Columna], [Xs|Filas]) :-
-    extraer_columna(Resto, Columna, Filas).
+% obte1acol(Matriz, Columna)
+% Extrae la primera columna de una matriz.
+% Matriz: lista de listas donde cada sublista representa una fila.
+% Columna: lista formada por el primer elemento de cada fila.
+obte1acol([], []).
+obte1acol([PF|RF], [PC|RPC]) :-
+    PF = [PC| _],
+    obte1acol(RF, RPC).
+
+% obterestacols(Matriz, Restante)
+% Extrae las subfilas sin el primer elemento de cada fila de una matriz.
+% Matriz: lista de listas donde cada sublista representa una fila.
+% Restante: matriz con las filas originales sin su primer elemento.
+obterestacols([], []).
+obterestacols([PF|RF], [RPF|RPC]) :-
+    PF = [_|RPF],
+    obterestacols(RF, RPC).
 
 % validar_columnas(Columnas, Transpuesta)
 % Verifica que cada columna transpuesta cumpla con su pista correspondiente.
